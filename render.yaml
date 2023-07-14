@@ -1,8 +1,0 @@
-services:
-  - name: event-api
-    type: web
-    buildCommand: yarn
-    startCommand: node server.js
-    env:
-      - key: NODE_VERSION
-        value: 14.20.1
