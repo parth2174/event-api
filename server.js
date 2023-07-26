@@ -103,6 +103,83 @@ app.delete('/api/events/:id', async (req, res) => {
 })
 
 
+
+
+
+
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////
+
+
+
+function authenticateToken(req, res, next) {
+    const token = req.header('Authorization');
+    if (!token) return res.sendStatus(401);
+  
+    jwt.verify(token, SECRET_KEY, (err, user) => {
+      if (err) return res.sendStatus(403);
+      req.user = user;
+      next();
+    });
+  }
+  
+  
+  
+  // Route for user registration
+  app.post('/register', async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      const hashedPassword = await bcrypt.hash(password, 10);
+      users.push({ username, password: hashedPassword });
+      res.sendStatus(200);
+    } catch (error) {
+      res.sendStatus(500);
+    }
+  });
+  
+  
+  
+  // Route for user login
+  app.post('/login', async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      const user = users.find((u) => u.username === username);
+      if (!user) return res.sendStatus(404);
+  
+      const passwordMatch = await bcrypt.compare(password, user.password);
+      if (!passwordMatch) return res.sendStatus(401);
+  
+      const token = jwt.sign({ username: user.username }, SECRET_KEY);
+      res.json({ token });
+    } catch (error) {
+      res.sendStatus(500);
+    }
+  });
+  
+
+
+  app.use("/api/v1/user", require("./routes/userRoutes"));
+  
+  app.get('/home', authenticateToken, (req, res) => {
+    res.send(`Welcome, ${req.user.username}!`);
+  });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 const port = 5000;
 app.listen(port, () => {
     console.log(`server is running on port ${port}`)
